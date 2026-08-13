@@ -22,6 +22,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const CLIENT_DIST = join(__dirname, '..', 'client', 'dist')
 
 const app = express()
+app.set('trust proxy', 1)
 app.use(express.json({ limit: '1mb' }))
 app.use(securityHeaders)
 app.use(checkOrigin)

@@ -8,7 +8,7 @@
   $effect(() => {
 
     let cancelled = false
-    fetch('/printers')
+    fetch(import.meta.env.BASE_URL + 'printers')
       .then((res) => {
         if (!res.ok) throw new Error(`Failed to load printers: ${res.status}`)
         return res.json()

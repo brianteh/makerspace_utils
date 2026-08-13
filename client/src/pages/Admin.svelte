@@ -16,7 +16,7 @@
 
   async function checkAuth() {
     try {
-      const res = await fetch('/api/me')
+      const res = await fetch(import.meta.env.BASE_URL + 'api/me')
       if (res.ok) {
         user = await res.json()
       } else {
@@ -31,7 +31,7 @@
 
   async function tryLogin() {
     loginError = null
-    const res = await fetch('/api/login', {
+    const res = await fetch(import.meta.env.BASE_URL + 'api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: loginUsername, password: loginPassword }),
@@ -46,14 +46,17 @@
   }
 
   async function logout() {
-    await fetch('/api/logout', { method: 'POST' })
+    await fetch(import.meta.env.BASE_URL + 'api/logout', { method: 'POST' })
     user = null
   }
 
   async function refresh() {
     if (!user) return
     try {
-      const [evRes, prRes] = await Promise.all([fetch('/events'), fetch('/printers')])
+      const [evRes, prRes] = await Promise.all([
+        fetch(import.meta.env.BASE_URL + 'events'),
+        fetch(import.meta.env.BASE_URL + 'printers'),
+      ])
       if (!evRes.ok) throw new Error(`events ${evRes.status}`)
       if (!prRes.ok) throw new Error(`printers ${prRes.status}`)
       events = await evRes.json()
@@ -81,7 +84,7 @@
   async function createEvent() {
     if (!eventForm.title || !eventForm.start) return alert('Title and start are required')
     try {
-      await request('/api/events', {
+      await request(import.meta.env.BASE_URL + 'api/events', {
         method: 'POST',
         body: JSON.stringify({
           title: eventForm.title,
@@ -102,7 +105,7 @@
 
   async function updateEvent() {
     try {
-      await request(`/api/events/${eventForm.id}`, {
+      await request(import.meta.env.BASE_URL + 'api/events/' + eventForm.id, {
         method: 'PUT',
         body: JSON.stringify({
           title: eventForm.title,
@@ -124,7 +127,7 @@
   async function deleteEvent(event) {
     if (!confirm(`Delete event "${event.title}"?`)) return
     try {
-      await request(`/api/events/${event.id}`, { method: 'DELETE' })
+      await request(import.meta.env.BASE_URL + 'api/events/' + event.id, { method: 'DELETE' })
       await refresh()
     } catch (err) {
       alert(err.message)
@@ -151,7 +154,7 @@
   async function createPrinter() {
     if (!printerForm.id || !printerForm.name) return alert('ID and name are required')
     try {
-      await request('/api/printers', {
+      await request(import.meta.env.BASE_URL + 'api/printers', {
         method: 'POST',
         body: JSON.stringify({
           id: printerForm.id,
@@ -171,7 +174,7 @@
 
   async function updatePrinter() {
     try {
-      await request(`/api/printers/${printerForm.originalId}`, {
+      await request(import.meta.env.BASE_URL + 'api/printers/' + printerForm.originalId, {
         method: 'PUT',
         body: JSON.stringify({
           name: printerForm.name,
@@ -191,7 +194,7 @@
   async function deletePrinter(printer) {
     if (!confirm(`Delete printer "${printer.name}"?`)) return
     try {
-      await request(`/api/printers/${printer.id}`, { method: 'DELETE' })
+      await request(import.meta.env.BASE_URL + 'api/printers/' + printer.id, { method: 'DELETE' })
       await refresh()
     } catch (err) {
       alert(err.message)

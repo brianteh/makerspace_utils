@@ -7,13 +7,14 @@
   }
 
   let { printer } = $props()
+  const imageSrc = printer.imageUrl?.startsWith('/') ? import.meta.env.BASE_URL + printer.imageUrl.slice(1) : printer.imageUrl
   let status = $state(null)
   let loading = $state(true)
   let error = $state(null)
 
   async function fetchStatus() {
     try {
-      const res = await fetch(`/status/${printer.id}`)
+      const res = await fetch(import.meta.env.BASE_URL + 'status/' + printer.id)
       if (!res.ok) throw new Error(`status ${res.status}`)
       const data = await res.json()
       status = data.status
@@ -34,7 +35,7 @@
 </script>
 
 <article class="card">
-  <img src={printer.imageUrl} alt={`${printer.name} photo`} />
+  <img src={imageSrc} alt={`${printer.name} photo`} />
   <div class="info">
     <h2>{printer.name}</h2>
     <!-- <p class="id">ID: {printer.id}</p> -->

@@ -52,7 +52,7 @@
     calendarEl.options = config
 
     let cancelled = false
-    fetch('/events')
+    fetch(import.meta.env.BASE_URL + 'events')
       .then((res) => {
         if (!res.ok) throw new Error(`Failed to load events: ${res.status}`)
         return res.json()
