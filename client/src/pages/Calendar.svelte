@@ -8,6 +8,22 @@
   let loading = $state(true)
   let error = $state(null)
 
+  function fitToContainer() {
+    if (!calendarEl) return
+    const api = calendarEl.getApi?.()
+    if (!api) return
+    const el = calendarEl
+    const width = el.clientWidth || 0
+    const toolbar = el.querySelector('.fc-header-toolbar')
+    const toolbarHeight = toolbar ? toolbar.offsetHeight : 0
+    const container = el.parentElement
+    const containerHeight = container ? container.clientHeight : 0
+    const availableHeight = Math.max(containerHeight - toolbarHeight - 32, 200)
+    if (width > 0 && availableHeight > 0) {
+      api.setOption('aspectRatio', width / availableHeight)
+    }
+  }
+
   function eventDidMount(info) {
     var description = info.event.extendedProps.description || 'No additional details.'
     var title = info.event.title
@@ -45,6 +61,7 @@
         center: 'title',
         right: 'dayGridMonth,dayGridWeek,dayGridDay',
       },
+      aspectRatio: 1.1,
       eventDidMount,
       events: [],
     }
@@ -52,6 +69,14 @@
     calendarEl.options = config
 
     let cancelled = false
+    const fit = () => {
+      if (!cancelled) requestAnimationFrame(fitToContainer)
+    }
+    window.addEventListener('resize', fit)
+    const ro = new ResizeObserver(fit)
+    if (calendarEl.parentElement) ro.observe(calendarEl.parentElement)
+    fit()
+
     fetch(import.meta.env.BASE_URL + 'events')
       .then((res) => {
         if (!res.ok) throw new Error(`Failed to load events: ${res.status}`)
@@ -61,6 +86,7 @@
         if (!cancelled) {
           calendarEl.getApi()?.addEventSource(data)
           loading = false
+          fit()
         }
       })
       .catch((err) => {
@@ -72,6 +98,8 @@
 
     return () => {
       cancelled = true
+      window.removeEventListener('resize', fit)
+      ro.disconnect()
     }
   })
 </script>
@@ -88,9 +116,13 @@
 
 <style>
   main {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 32px 24px 64px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
 
@@ -104,9 +136,8 @@
   }
 
   full-calendar {
-    max-width: 900px;
-    height: auto;
-    margin: 40px auto;
+    width: 100%;
+    max-width: 100%;
     color: #1c1c1c;
 
     --fc-button-bg-color: #ef7334;
