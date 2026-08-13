@@ -1,0 +1,27 @@
+:root {
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #0f172a;
+    color: #e2e8f0;
+  }
+
+  .card {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+  }
+
+  .id {
+    color: #64748b !important;
+  }
+}
