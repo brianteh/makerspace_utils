@@ -123,6 +123,7 @@
     box-sizing: border-box;
     overflow-x: hidden;
     overflow-y: auto;
+    container-type: inline-size;
   }
 
 
@@ -156,6 +157,19 @@
     --fc-event-bg-color: #4a154b;
     --fc-event-border-color: #4a154b;
     --fc-event-text-color: #ffffff;
+  }
+
+  :global(full-calendar .fc) {
+    font-size: clamp(0.75rem, 1.1cqw, 1.1rem);
+  }
+
+  :global(.fc-toolbar-title) {
+    font-size: 1.75em;
+    margin: 0;
+  }
+
+  :global(.fc-button) {
+    font-size: 1.15em;
   }
 
   :global(.tooltip) {
