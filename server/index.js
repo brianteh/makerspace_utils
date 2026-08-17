@@ -179,7 +179,7 @@ app.use(
 
 app.use(
   '/images',
-  express.static(IMAGE_DIR, {
+  express.static(IMAGES_DIR, {
     setHeaders: (res) => {
       res.setHeader('Access-Control-Allow-Origin', '*')
       res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
