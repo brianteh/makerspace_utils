@@ -48,17 +48,6 @@ app.get('/api/me', (req, res) => {
 })
 
 app.post('/api/login', (req, res) => {
- const fetchSite = req.headers['sec-fetch-site']
-  const referer = req.headers.referer || ''
-
-  // 1. Cross-site requests into the login endpoint are from embedded contexts
-  // 2. Or check if the Referer host doesn't match your direct host
-  const isCrossSiteEmbed = fetchSite === 'cross-site'
-  const isFramedHeader = req.headers['sec-fetch-dest'] === 'iframe'
-
-  if (isCrossSiteEmbed || isFramedHeader) {
-    return res.status(403).json({ error: 'Admin login is not allowed inside an embedded iframe.' })
-  }
 
   const key = req.ip
   if (loginRateLimited(key)) {
