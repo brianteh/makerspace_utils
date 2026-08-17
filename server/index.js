@@ -50,17 +50,11 @@ app.get('/api/me', (req, res) => {
 app.post('/api/login', (req, res) => {
   const fetchDest = req.headers['sec-fetch-dest']
   const fetchSite = req.headers['sec-fetch-site']
-  const referer = req.headers.referer || ''
 
-  // Sec-Fetch-Dest can be 'iframe' or the referer can originate from the embedding parent domain
-  const isFramed = 
-    fetchDest === 'iframe' || 
-    (fetchSite === 'cross-site' && !referer.startsWith('https://eez156.ece.ust.hk'))
-
-  if (isFramed) {
+  if (fetchDest === 'iframe' || (fetchSite === 'cross-site' && req.headers.referer?.includes('iframe'))) {
     return res.status(403).json({ error: 'Admin login is not allowed inside an embedded iframe.' })
   }
-  
+
   const key = req.ip
   if (loginRateLimited(key)) {
     return res.status(429).json({ error: 'too many login attempts, try again later' })
