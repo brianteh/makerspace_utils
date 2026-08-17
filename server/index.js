@@ -167,15 +167,7 @@ app.delete('/api/printers/:id', (req, res) => {
   }
   res.json({ ok: true })
 })
-app.use(
-  '/images',
-  express.static('public/images', {
-    setHeaders: (res) => {
-      res.setHeader('Access-Control-Allow-Origin', '*')
-      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
-    }
-  })
-)
+
 
 app.use(
   '/images',
