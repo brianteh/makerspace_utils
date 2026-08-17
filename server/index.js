@@ -167,6 +167,7 @@ app.delete('/api/printers/:id', (req, res) => {
   res.json({ ok: true })
 })
 
+app.use('/images', cors({ origin: '*' }))
 app.use('/images', express.static(IMAGES_DIR))
 
 if (existsSync(CLIENT_DIST)) {
