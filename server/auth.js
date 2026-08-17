@@ -129,7 +129,12 @@ export function checkOrigin(req, res, next) {
   if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return next()
   const origin = req.headers.origin
   if (!origin) return next()
-  if (MUTATION_ORIGINS.includes(origin)) return next()
+
+  // Dynamically check if the Origin matches the Host requested by the browser
+  const currentOrigin = `${req.protocol}://${req.headers.host}`
+
+  if (MUTATION_ORIGINS.includes(origin) || origin === currentOrigin) return next()
+  
   return res.status(403).json({ error: 'forbidden origin' })
 }
 
