@@ -20,6 +20,7 @@ import {
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const CLIENT_DIST = join(__dirname, '..', 'client', 'dist')
+const IMAGES_DIR = join(__dirname, '..', 'client', 'public', 'images')
 
 const app = express()
 app.set('trust proxy', 1) //trust caddy/nginx proxy
@@ -165,6 +166,8 @@ app.delete('/api/printers/:id', (req, res) => {
   }
   res.json({ ok: true })
 })
+
+app.use('/images', express.static(IMAGES_DIR))
 
 if (existsSync(CLIENT_DIST)) {
   app.use(express.static(CLIENT_DIST))
