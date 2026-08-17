@@ -167,9 +167,25 @@ app.delete('/api/printers/:id', (req, res) => {
   }
   res.json({ ok: true })
 })
+app.use(
+  '/images',
+  express.static('public/images', {
+    setHeaders: (res) => {
+      res.setHeader('Access-Control-Allow-Origin', '*')
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
+    }
+  })
+)
 
-app.use('/images', cors({ origin: '*' }))
-app.use('/images', express.static(IMAGES_DIR))
+app.use(
+  '/images',
+  express.static(IMAGE_DIR, {
+    setHeaders: (res) => {
+      res.setHeader('Access-Control-Allow-Origin', '*')
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
+    }
+  })
+)
 
 if (existsSync(CLIENT_DIST)) {
   app.use(express.static(CLIENT_DIST))
