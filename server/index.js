@@ -1,4 +1,5 @@
 import express from 'express'
+import cors from 'cors'
 import { dirname, join } from 'node:path'
 import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
