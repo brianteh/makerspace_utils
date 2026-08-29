@@ -6,10 +6,10 @@ export default defineConfig({
   plugins: [svelte()],
   server: {
     proxy: {
-      '/status': 'http://localhost:3001',
-      '/printers': 'http://localhost:3001',
-      '/events': 'http://localhost:3001',
-      '/api': 'http://localhost:3001',
+      '/status': 'http://localhost:5000',
+      '/printers': 'http://localhost:5000',
+      '/events': 'http://localhost:5000',
+      '/api': 'http://localhost:5000',
     },
   },
 })

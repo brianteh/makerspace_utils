@@ -4,7 +4,9 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const dataDir = join(__dirname, 'data')
+// DATA_DIR is set by the NixOS module / systemd StateDirectory.
+// Falls back to __dirname/data for plain `npm start` dev workflow.
+const dataDir = process.env.DATA_DIR || join(__dirname, 'data')
 mkdirSync(dataDir, { recursive: true })
 
 export const db = new DatabaseSync(join(dataDir, 'db.sqlite3'))

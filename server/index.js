@@ -20,8 +20,10 @@ import {
 } from './auth.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const CLIENT_DIST = join(__dirname, '..', 'client', 'dist')
-const IMAGES_DIR = join(__dirname, '..', 'client', 'public', 'images')
+// CLIENT_DIST / IMAGES_DIR can be overridden via env (Nix store layout).
+// Defaults preserve the original `npm start` dev layout.
+const CLIENT_DIST = process.env.CLIENT_DIST || join(__dirname, '..', 'client', 'dist')
+const IMAGES_DIR = process.env.IMAGES_DIR || join(__dirname, '..', 'client', 'public', 'images')
 
 const app = express()
 app.set('trust proxy', 1) //trust caddy/nginx proxy
@@ -190,7 +192,7 @@ if (existsSync(CLIENT_DIST)) {
   )
 }
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT || 5000
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`)
 })

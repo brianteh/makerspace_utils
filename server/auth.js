@@ -19,7 +19,7 @@ const parseOrigins = (value, fallback) =>
 export const FRAME_ANCESTORS = parseOrigins(process.env.FRAME_ANCESTORS, '')
 export const MUTATION_ORIGINS = parseOrigins(
   process.env.ALLOWED_ORIGINS,
-  `http://localhost:5173,http://localhost:3001,${process.env.APP_ORIGIN || 'http://localhost:3001'}`
+  `http://localhost:5173,http://localhost:5000,${process.env.APP_ORIGIN || 'http://localhost:5000'}`
 )
 
 const secureCookie = process.env.NODE_ENV === 'production'
