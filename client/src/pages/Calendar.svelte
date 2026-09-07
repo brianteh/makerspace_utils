@@ -1,24 +1,27 @@
 <script>
   import '@fullcalendar/web-component/global'
   import dayGridPlugin from '@fullcalendar/daygrid'
-  import Tooltip from 'tooltip.js'
+  import tippy from 'tippy.js'
+  import 'tippy.js/dist/tippy.css'
   import { onMount } from 'svelte'
 
   let calendarEl = $state(null)
   let loading = $state(true)
   let error = $state(null)
+  let selectedEvent = $state(null)
+
+  function formatTime(event) {
+    if (event.allDay || !event.start) return '📅 All-Day'
+    var timeOptions = { hour: 'numeric', minute: '2-digit' }
+    var startTime = new Intl.DateTimeFormat('en-US', timeOptions).format(event.start)
+    var endTime = event.end ? ' - ' + new Intl.DateTimeFormat('en-US', timeOptions).format(event.end) : ''
+    return '🕒 ' + startTime + endTime
+  }
 
   function eventDidMount(info) {
     var description = info.event.extendedProps.description || 'No additional details.'
     var title = info.event.title
-
-    var timeString = '📅 All-Day'
-    if (!info.event.allDay && info.event.start) {
-      var timeOptions = { hour: 'numeric', minute: '2-digit' }
-      var startTime = new Intl.DateTimeFormat('en-US', timeOptions).format(info.event.start)
-      var endTime = info.event.end ? ' - ' + new Intl.DateTimeFormat('en-US', timeOptions).format(info.event.end) : ''
-      timeString = '🕒 ' + startTime + endTime
-    }
+    var timeString = formatTime(info.event)
 
     var popupContent = `
       <div class="popup-header">${title}</div>
@@ -26,14 +29,36 @@
       <div class="popup-body">${description}</div>
     `
 
-    new Tooltip(info.el, {
-      title: popupContent,
-      placement: 'top',
-      trigger: 'hover',
-      container: 'body',
-      html: true,
-      offset: '0, 10',
+    tippy(info.el, {
+      content: popupContent,
+      allowHTML: true,
+      trigger: 'mouseenter focus',
+      hideOnClick: false,
+      placement: 'auto',
+      flip: true,
+      shift: true,
+      preventOverflow: true,
+      boundary: 'viewport',
+      maxWidth: 260,
+      offset: [0, 10],
+      theme: 'light',
+      interactive: false,
+      appendTo: () => document.body,
     })
+  }
+
+  function eventClick(info) {
+    info.jsEvent.preventDefault()
+    selectedEvent = {
+      title: info.event.title,
+      timeString: formatTime(info.event),
+      description: info.event.extendedProps.description || 'No additional details.',
+      url: info.event.url || null,
+    }
+  }
+
+  function closeModal() {
+    selectedEvent = null
   }
 
   onMount(() => {
@@ -52,6 +77,7 @@
       stickyHeaderDates: true,
       dayMaxEvents: 2,
       eventDidMount,
+      eventClick,
       events: [],
     }
 
@@ -90,7 +116,12 @@
       })
     }
 
+    function onKeyDown(e) {
+      if (e.key === 'Escape') closeModal()
+    }
+
     window.addEventListener('resize', fit)
+    window.addEventListener('keydown', onKeyDown)
     const ro = new ResizeObserver(fit)
     ro.observe(document.documentElement)
     if (calendarEl) ro.observe(calendarEl)
@@ -120,6 +151,7 @@
     return () => {
       cancelled = true
       window.removeEventListener('resize', fit)
+      window.removeEventListener('keydown', onKeyDown)
       ro.disconnect()
     }
   })
@@ -133,6 +165,20 @@
   {/if}
 
   <full-calendar bind:this={calendarEl}></full-calendar>
+
+  {#if selectedEvent}
+    <div class="modal-backdrop" onclick={closeModal} role="presentation">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onclick={(e) => e.stopPropagation()}>
+        <button class="modal-close" onclick={closeModal} aria-label="Close">×</button>
+        <div id="modal-title" class="popup-header">{selectedEvent.title}</div>
+        <div class="popup-time">{selectedEvent.timeString}</div>
+        <div class="popup-body">{selectedEvent.description}</div>
+        {#if selectedEvent.url}
+          <a class="popup-link" href={selectedEvent.url} target="_blank" rel="noopener">Open link</a>
+        {/if}
+      </div>
+    </div>
+  {/if}
 </main>
 
 <style>
@@ -218,6 +264,10 @@
     align-items: center;
   }
 
+  :global(.fc-event) {
+    cursor: pointer;
+  }
+
   @media (max-width: 640px) {
     main {
       padding: 8px;
@@ -262,24 +312,84 @@
     }
   }
 
-  :global(.tooltip) {
-    position: absolute;
-    z-index: 10000;
+  :global(.tippy-box[data-theme~='light']) {
     background: #ffffff;
     color: #1e293b;
-    width: 260px;
-    padding: 14px;
+    border: 1px solid #e2e8f0;
     border-radius: 10px;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e2e8f0;
     font-size: 13px;
     line-height: 1.5;
-    opacity: 0;
-    transition: opacity 0.15s ease-in-out;
+    max-width: min(260px, 90vw) !important;
   }
 
-  :global(.tooltip[aria-hidden='false']) {
-    opacity: 1;
+  :global(.tippy-box[data-theme~='light'] .tippy-content) {
+    padding: 14px;
+  }
+
+  :global(.tippy-box[data-theme~='light'] .tippy-arrow) {
+    color: #ffffff;
+  }
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    box-sizing: border-box;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 10001;
+  }
+
+  .modal {
+    position: relative;
+    background: #ffffff;
+    color: #1e293b;
+    width: min(520px, 90vw);
+    max-height: 85vh;
+    overflow: auto;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    animation: modalIn 0.15s ease-out;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: transparent;
+    border: 0;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    color: #64748b;
+  }
+
+  .modal-close:hover {
+    color: #0f172a;
+  }
+
+  @keyframes modalIn {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal {
+      width: 95vw;
+      padding: 16px;
+    }
   }
 
   :global(.popup-header) {
@@ -287,6 +397,7 @@
     font-size: 14px;
     margin-bottom: 6px;
     color: #0f172a;
+    padding-right: 20px;
   }
 
   :global(.popup-time) {
@@ -302,5 +413,17 @@
     padding-top: 8px;
     border-top: 1px solid #f1f5f9;
     color: #475569;
+  }
+
+  .popup-link {
+    display: inline-block;
+    margin-top: 12px;
+    color: #2563eb;
+    font-size: 13px;
+    text-decoration: none;
+  }
+
+  .popup-link:hover {
+    text-decoration: underline;
   }
 </style>
