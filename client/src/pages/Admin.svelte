@@ -451,25 +451,6 @@
     font-weight: 600;
   }
 
-  @media (prefers-color-scheme: dark) {
-    .tabs button {
-      background: #1e293b;
-      border-color: #334155;
-      color: #e2e8f0;
-    }
-
-    .tabs button:hover {
-      background: #334155;
-      border-color: #475569;
-    }
-
-    .tabs button.active {
-      background: #2563eb;
-      color: #fff;
-      border-color: #2563eb;
-    }
-  }
-
   form {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
