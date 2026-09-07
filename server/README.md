@@ -41,6 +41,22 @@ Then on the embedding site, frame the app with a restrictive `sandbox`:
 <iframe src="https://your-app.example.com/#/fleet" sandbox="allow-scripts allow-same-origin"></iframe>
 ```
 
+For the Calendar page, the embedded page auto-reports its height so the parent iframe can resize to fit all content (clean desktop + stacked `dayGridMonth` on mobile):
+
+```html
+<iframe id="calendar-iframe" src="https://your-app.example.com/#/calendar" sandbox="allow-scripts allow-same-origin" style="width:100%; border:0; overflow:hidden"></iframe>
+<script>
+  window.addEventListener('message', (e) => {
+    // optionally verify e.origin === 'https://your-app.example.com'
+    if (e.data?.type === 'calendar-resize' && typeof e.data.height === 'number') {
+      document.getElementById('calendar-iframe').style.height = e.data.height + 'px';
+    }
+  });
+</script>
+```
+
+The Calendar sends `postMessage({type:'calendar-resize', height: document.documentElement.scrollHeight})` on mount, resize, `ResizeObserver`, and after events load. Replace `'*'` with your app origin for stricter security if needed.
+
 **What stays protected:**
 
 - Only origins in `FRAME_ANCESTORS` can frame the app; all others are blocked (default).

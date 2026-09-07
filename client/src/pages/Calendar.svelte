@@ -8,22 +8,6 @@
   let loading = $state(true)
   let error = $state(null)
 
-  function fitToContainer() {
-    if (!calendarEl) return
-    const api = calendarEl.getApi?.()
-    if (!api) return
-    const el = calendarEl
-    const width = el.clientWidth || 0
-    const toolbar = el.querySelector('.fc-header-toolbar')
-    const toolbarHeight = toolbar ? toolbar.offsetHeight : 0
-    const container = el.parentElement
-    const containerHeight = container ? container.clientHeight : 0
-    const availableHeight = Math.max(containerHeight - toolbarHeight - 32, 200)
-    if (width > 0 && availableHeight > 0) {
-      api.setOption('aspectRatio', width / availableHeight)
-    }
-  }
-
   function eventDidMount(info) {
     var description = info.event.extendedProps.description || 'No additional details.'
     var title = info.event.title
@@ -61,7 +45,12 @@
         center: 'title',
         right: 'dayGridMonth,dayGridWeek,dayGridDay',
       },
-      aspectRatio: 1.1,
+      height: 'auto',
+      contentHeight: 'auto',
+      expandRows: true,
+      handleWindowResize: true,
+      stickyHeaderDates: true,
+      dayMaxEvents: 2,
       eventDidMount,
       events: [],
     }
@@ -69,11 +58,42 @@
     calendarEl.options = config
 
     let cancelled = false
-    const fit = () => {
-      if (!cancelled) requestAnimationFrame(fitToContainer)
+    let lastHeight = 0
+
+    function notifyParent() {
+      if (cancelled) return
+      const h = Math.ceil(
+        document.documentElement.scrollHeight || document.body.scrollHeight || calendarEl?.scrollHeight || 0,
+      )
+      if (Math.abs(h - lastHeight) < 5) return
+      lastHeight = h
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'calendar-resize', height: h }, '*')
+      }
     }
+
+    function applyStacked() {
+      if (!calendarEl || cancelled) return
+      const w = calendarEl.clientWidth || window.innerWidth
+      const isMobile = w < 640
+      if (isMobile) calendarEl.classList.add('is-mobile')
+      else calendarEl.classList.remove('is-mobile')
+    }
+
+    const fit = () => {
+      if (cancelled) return
+      requestAnimationFrame(() => {
+        if (cancelled) return
+        applyStacked()
+        calendarEl?.getApi?.()?.updateSize()
+        notifyParent()
+      })
+    }
+
     window.addEventListener('resize', fit)
     const ro = new ResizeObserver(fit)
+    ro.observe(document.documentElement)
+    if (calendarEl) ro.observe(calendarEl)
     if (calendarEl.parentElement) ro.observe(calendarEl.parentElement)
     fit()
 
@@ -93,6 +113,7 @@
         if (!cancelled) {
           error = err.message
           loading = false
+          fit()
         }
       })
 
@@ -116,16 +137,16 @@
 
 <style>
   main {
-    height: 100vh;
+    height: auto;
+    min-height: 100dvh;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     padding: 16px;
     box-sizing: border-box;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: visible;
     container-type: inline-size;
   }
-
 
   .status-note {
     color: #64748b;
@@ -139,6 +160,9 @@
   full-calendar {
     width: 100%;
     max-width: 100%;
+    display: block;
+    height: auto;
+    flex: 0 0 auto;
     color: #1c1c1c;
 
     --fc-button-bg-color: #ef7334;
@@ -160,7 +184,15 @@
   }
 
   :global(full-calendar .fc) {
-    font-size: clamp(0.75rem, 1.1cqw, 1.1rem);
+    font-size: clamp(0.75rem, 1.1cqw, 1rem);
+  }
+
+  :global(full-calendar .fc-view-harness) {
+    height: auto !important;
+  }
+
+  :global(full-calendar .fc-scroller) {
+    overflow: visible !important;
   }
 
   :global(.fc-toolbar-title) {
@@ -170,6 +202,64 @@
 
   :global(.fc-button) {
     font-size: 1.15em;
+  }
+
+  :global(.fc-header-toolbar) {
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  :global(.fc-toolbar-chunk) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+  }
+
+  @media (max-width: 640px) {
+    main {
+      padding: 8px;
+    }
+
+    :global(.fc-header-toolbar) {
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    :global(.fc-toolbar-chunk) {
+      justify-content: center;
+    }
+
+    :global(.fc-toolbar-title) {
+      font-size: 1.2em;
+      order: -1;
+    }
+
+    :global(.fc-button) {
+      font-size: 0.85em;
+      padding: 4px 8px;
+    }
+
+    :global(full-calendar .fc) {
+      font-size: clamp(0.7rem, 3.2cqw, 0.9rem);
+    }
+
+    :global(.fc-daygrid-day-number) {
+      font-size: 0.85em;
+    }
+  }
+
+  @container (max-width: 480px) {
+    :global(.fc-header-toolbar) {
+      gap: 4px;
+    }
+
+    :global(.fc-button-group) {
+      flex-wrap: wrap;
+    }
   }
 
   :global(.tooltip) {
